@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}登入 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-5 animate-fade-in-up">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <span class="brand-logo-container d-inline-flex mb-3">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </span>
+                <h3 class="fw-bold">帳戶登入</h3>
+                <p class="text-secondary small">請輸入使用者名稱與密碼以管理您的日誌</p>
+            </div>
+            
+            <form action="{{ url_for('auth.login_post') }}" method="POST" autocomplete="off">
+                <div class="mb-3">
+                    <label for="username" class="form-label text-secondary small">使用者名稱</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-dark text-secondary"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control form-control-custom border-start-0" id="username" name="username" value="{{ username or '' }}" placeholder="請輸入帳號" required>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label text-secondary small">密碼</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-dark text-secondary"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control form-control-custom border-start-0" id="password" name="password" placeholder="請輸入密碼" required autocomplete="current-password">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-action-primary w-100 py-2.5 mb-3">
+                    立即登入
+                </button>
+            </form>
+            
+            <hr class="my-4" style="border-color: var(--border-color);">
+            
+            <div class="text-center">
+                <p class="text-secondary small mb-0">還沒有帳戶？ <a href="{{ url_for('auth.register') }}" class="text-highlight fw-semibold text-decoration-none">立即免費註冊</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

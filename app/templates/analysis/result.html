@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}大便健康分析 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4 animate-fade-in-up">
+    <div class="col-lg-8">
+        <div class="premium-card">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3" style="border-color: var(--border-color) !important;">
+                <h3 class="mb-0"><i class="bi bi-heart-pulse-fill text-highlight me-2"></i>布里斯托大便健康分析</h3>
+                <span class="badge badge-premium">記錄時間: {{ log.date_time.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+
+            <!-- Stool Type Big Circle Visual -->
+            <div class="text-center mb-5 py-4 rounded-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 border border-3 border-secondary" 
+                     style="width: 100px; height: 100px; background: var(--gradient-primary); box-shadow: var(--gradient-glow); border-color: rgba(255,255,255,0.2) !important;">
+                    <span class="display-4 fw-bold text-white font-monospace">{{ result.bristol_type }}</span>
+                </div>
+                <h4 class="fw-bold mb-1">布里斯托分類法：第 {{ result.bristol_type }} 類</h4>
+                <div class="fs-5 fw-bold 
+                    {% if result.bristol_type in [3, 4] %}text-success
+                    {% else %}text-warning{% endif %}">
+                    {{ result.status }}
+                </div>
+            </div>
+
+            <!-- Detailed description cards -->
+            <div class="row g-4 mb-4">
+                <!-- Stool shape evaluation -->
+                <div class="col-md-6">
+                    <div class="p-4 rounded-4 h-100" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                        <h5 class="fw-bold mb-3 text-light d-flex align-items-center">
+                            <i class="bi bi-info-circle text-highlight me-2"></i>外觀性狀特徵
+                        </h5>
+                        <p class="text-secondary small">{{ result.description }}</p>
+                        
+                        <div class="mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05);">
+                            <span class="text-secondary small fw-bold d-block mb-1.5">型態衛教建議：</span>
+                            <p class="text-secondary small mb-0">{{ result.bristol_suggestion }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stool color evaluation -->
+                <div class="col-md-6">
+                    <div class="p-4 rounded-4 h-100" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                        <h5 class="fw-bold mb-3 text-light d-flex align-items-center">
+                            <i class="bi bi-palette text-highlight me-2"></i>顏色醫學分析
+                        </h5>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; border: 1px solid #ffffff; background-color: 
+                                {% if log.color == '棕色' %}#634f3a
+                                {% elif log.color == '黃色' %}#eab308
+                                {% elif log.color == '綠色' %}#16a34a
+                                {% elif log.color == '黑色' %}#1e293b
+                                {% elif log.color == '紅色' %}#dc2626
+                                {% else %}#94a3b8{% endif %};"></span>
+                            <span class="fw-bold text-light small">{{ result.color_name }}</span>
+                        </div>
+                        <p class="text-secondary small">{{ result.color_analysis }}</p>
+                        
+                        <div class="mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05);">
+                            <span class="text-secondary small fw-bold d-block mb-1.5">警訊評估：</span>
+                            {% if result.is_warning %}
+                                <div class="alert alert-danger border-0 p-2 mb-0 small d-flex align-items-center">
+                                    <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+                                    <div>警告！該糞便特徵偏離正常範圍較大，若持續如此，請及時諮詢醫師。</div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success border-0 p-2 mb-0 small d-flex align-items-center bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-shield-fill-check me-2 fs-5"></i>
+                                    <div>特徵處於常態安全範圍。請保持觀察並維持均衡作息。</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes if any -->
+            {% if log.note %}
+                <div class="p-3.5 rounded-3 mb-5" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                    <span class="text-secondary small fw-bold d-block mb-1"><i class="bi bi-chat-square-text me-1.5"></i>您的備忘記錄：</span>
+                    <p class="text-secondary small mb-0" style="white-space: pre-wrap;">{{ log.note }}</p>
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
+                <a href="{{ url_for('logs.detail_log', id=log.id) }}" class="btn btn-outline-secondary px-4.5">
+                    <i class="bi bi-chevron-left me-1"></i>返回日誌細節
+                </a>
+                
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('logs.list_logs') }}" class="btn btn-outline-secondary px-3">
+                        <i class="bi bi-calendar3 me-1"></i>日誌清單
+                    </a>
+                    <a href="{{ url_for('analysis.view_suggestion') }}" class="btn btn-action-primary px-4 py-2">
+                        <i class="bi bi-lightbulb-fill me-1"></i>查看綜合飲食建議 <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

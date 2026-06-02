@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}紀錄排便 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Premium visual selectors for new log */
+    .bristol-selector-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+    
+    .bristol-option-card {
+        background-color: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        position: relative;
+    }
+    
+    .bristol-option-card:hover {
+        border-color: rgba(245, 158, 11, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .bristol-option-card.selected {
+        border-color: var(--color-primary-light);
+        background-color: rgba(245, 158, 11, 0.05);
+        box-shadow: var(--gradient-glow);
+    }
+    
+    .bristol-option-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .type-badge-large {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+        border: 1px solid var(--border-color);
+        transition: var(--transition-smooth);
+    }
+    
+    .bristol-option-card.selected .type-badge-large {
+        background: var(--gradient-primary);
+        color: white;
+        border-color: transparent;
+    }
+    
+    /* Color circular picker */
+    .color-picker-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .color-option {
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .color-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .color-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 3px solid var(--border-color);
+        transition: var(--transition-smooth);
+        display: inline-block;
+    }
+    
+    .color-option input[type="radio"]:checked + .color-circle {
+        border-color: var(--text-primary);
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Emojis */
+    .mood-selector {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .mood-option {
+        position: relative;
+        cursor: pointer;
+        text-align: center;
+    }
+    
+    .mood-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .mood-emoji {
+        font-size: 2rem;
+        transition: var(--transition-smooth);
+        display: block;
+        opacity: 0.5;
+    }
+    
+    .mood-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        transition: var(--transition-smooth);
+    }
+    
+    .mood-option input[type="radio"]:checked + .mood-emoji {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    
+    .mood-option input[type="radio"]:checked ~ .mood-label {
+        color: var(--color-primary-light);
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8 animate-fade-in-up">
+        <div class="premium-card">
+            <h2 class="mb-2"><i class="bi bi-journal-plus text-highlight me-2"></i>紀錄排便日誌</h2>
+            <p class="text-secondary mb-4">請根據真實狀況點選各項特徵，這能協助我們為您產出精準的健康分析。</p>
+            
+            <form action="{{ url_for('logs.create_log') }}" method="POST">
+                <!-- 1. Bristol Type Card Selector -->
+                <div class="mb-4">
+                    <label class="form-label text-secondary small fw-bold mb-2">1. 選擇布里斯托大便類型 (必填)</label>
+                    <div class="bristol-selector-grid">
+                        <!-- Type 1 -->
+                        <label class="bristol-option-card selected" id="label-type-1">
+                            <input type="radio" name="bristol_type" value="1" checked onclick="selectType(1)">
+                            <div class="type-badge-large">1</div>
+                            <div class="small fw-semibold text-light">嚴重便秘</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">硬球堅果狀</div>
+                        </label>
+                        <!-- Type 2 -->
+                        <label class="bristol-option-card" id="label-type-2">
+                            <input type="radio" name="bristol_type" value="2" onclick="selectType(2)">
+                            <div class="type-badge-large">2</div>
+                            <div class="small fw-semibold text-light">輕微便秘</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">凹凸凹槽香腸</div>
+                        </label>
+                        <!-- Type 3 -->
+                        <label class="bristol-option-card" id="label-type-3">
+                            <input type="radio" name="bristol_type" value="3" onclick="selectType(3)">
+                            <div class="type-badge-large">3</div>
+                            <div class="small fw-semibold text-light">正常偏乾</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">有裂痕香腸</div>
+                        </label>
+                        <!-- Type 4 -->
+                        <label class="bristol-option-card" id="label-type-4">
+                            <input type="radio" name="bristol_type" value="4" onclick="selectType(4)">
+                            <div class="type-badge-large">4</div>
+                            <div class="small fw-semibold text-light">理想健康</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">光滑柔軟蛇狀</div>
+                        </label>
+                        <!-- Type 5 -->
+                        <label class="bristol-option-card" id="label-type-5">
+                            <input type="radio" name="bristol_type" value="5" onclick="selectType(5)">
+                            <div class="type-badge-large">5</div>
+                            <div class="small fw-semibold text-light">纖維不足</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">柔軟斷裂斑塊</div>
+                        </label>
+                        <!-- Type 6 -->
+                        <label class="bristol-option-card" id="label-type-6">
+                            <input type="radio" name="bristol_type" value="6" onclick="selectType(6)">
+                            <div class="type-badge-large">6</div>
+                            <div class="small fw-semibold text-light">輕微腹瀉</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">糊爛不規則狀</div>
+                        </label>
+                        <!-- Type 7 -->
+                        <label class="bristol-option-card" id="label-type-7">
+                            <input type="radio" name="bristol_type" value="7" onclick="selectType(7)">
+                            <div class="type-badge-large">7</div>
+                            <div class="small fw-semibold text-light">嚴重腹瀉</div>
+                            <div class="text-muted" style="font-size: 0.7rem; margin-top: 3px;">完全水狀液體</div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="row g-4 mb-4">
+                    <!-- 2. Color picker -->
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold mb-2">2. 大便顏色 (必填)</label>
+                        <div class="color-picker-group py-2">
+                            <label class="color-option">
+                                <input type="radio" name="color" value="棕色" checked>
+                                <span class="color-circle" style="background-color: #634f3a;" title="棕色"></span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="color" value="黃色">
+                                <span class="color-circle" style="background-color: #eab308;" title="黃色"></span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="color" value="綠色">
+                                <span class="color-circle" style="background-color: #16a34a;" title="綠色"></span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="color" value="黑色">
+                                <span class="color-circle" style="background-color: #1e293b;" title="黑色"></span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="color" value="紅色">
+                                <span class="color-circle" style="background-color: #dc2626;" title="紅色"></span>
+                            </label>
+                            <label class="color-option">
+                                <input type="radio" name="color" value="灰白色">
+                                <span class="color-circle" style="background-color: #94a3b8;" title="灰白色"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 3. Mood picker -->
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold mb-2">3. 記錄當下心情 (必填)</label>
+                        <div class="mood-selector py-1">
+                            <label class="mood-option">
+                                <input type="radio" name="mood" value="非常開心" checked>
+                                <span class="mood-emoji">😆</span>
+                                <span class="mood-label">開心</span>
+                            </label>
+                            <label class="mood-option">
+                                <input type="radio" name="mood" value="平靜放鬆">
+                                <span class="mood-emoji">😌</span>
+                                <span class="mood-label">放鬆</span>
+                            </label>
+                            <label class="mood-option">
+                                <input type="radio" name="mood" value="一般常態">
+                                <span class="mood-emoji">😐</span>
+                                <span class="mood-label">一般</span>
+                            </label>
+                            <label class="mood-option">
+                                <input type="radio" name="mood" value="稍微焦慮">
+                                <span class="mood-emoji">😰</span>
+                                <span class="mood-label">焦慮</span>
+                            </label>
+                            <label class="mood-option">
+                                <input type="radio" name="mood" value="肚子痛腹脹">
+                                <span class="mood-emoji">😣</span>
+                                <span class="mood-label">腹脹</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4 mb-4">
+                    <!-- 4. Date time -->
+                    <div class="col-md-6">
+                        <label for="date_time" class="form-label text-secondary small fw-bold">4. 排便日期與時間</label>
+                        <input type="datetime-local" class="form-control form-control-custom" id="date_time" name="date_time" value="{{ default_time }}" required>
+                    </div>
+                    <!-- 5. Odor -->
+                    <div class="col-md-6">
+                        <label for="odor" class="form-label text-secondary small fw-bold">5. 氣味判定 (選填)</label>
+                        <select class="form-select form-control-custom" id="odor" name="odor">
+                            <option value="正常普通" selected>正常無刺鼻異味</option>
+                            <option value="輕微臭味">輕微臭味</option>
+                            <option value="極度惡臭">極度惡臭</option>
+                            <option value="無特別氣味">近乎無氣味</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 6. Note -->
+                <div class="mb-4">
+                    <label for="note" class="form-label text-secondary small fw-bold">6. 備註與飲食說明 (選填)</label>
+                    <textarea class="form-control form-control-custom" id="note" name="note" rows="3" placeholder="例如：今天中午吃麻辣火鍋、晚上喝了 2000ml 水、吃了地瓜..."></textarea>
+                </div>
+                
+                <div class="d-flex gap-3 justify-content-end">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4">取消</a>
+                    <button type="submit" class="btn btn-action-primary px-4 py-2">
+                        <i class="bi bi-check-circle-fill me-2"></i>提交並查看分析
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectType(typeNum) {
+        // Remove 'selected' class from all cards
+        document.querySelectorAll('.bristol-option-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        // Add to selected
+        const targetCard = document.getElementById('label-type-' + typeNum);
+        if (targetCard) {
+            targetCard.classList.add('selected');
+        }
+    }
+</script>
+{% endblock %}

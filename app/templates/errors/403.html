@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}403 權限不足 - 糞便日誌{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center animate-fade-in-up">
+        <div class="premium-card py-5">
+            <h1 class="display-1 text-danger fw-bold"><i class="bi bi-shield-lock-fill"></i></h1>
+            <h3 class="mb-4">存取權限不足</h3>
+            <p class="text-secondary mb-5">您無權查看或修改此筆排便日誌。這可能不是屬於您的記錄。</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-action-primary px-4">
+                <i class="bi bi-house-door-fill me-2"></i>返回控制台
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}日誌明細 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4 animate-fade-in-up">
+    <div class="col-lg-7">
+        <div class="premium-card">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3" style="border-color: var(--border-color) !important;">
+                <h3 class="mb-0"><i class="bi bi-file-text-fill text-highlight me-2"></i>日誌明細紀錄</h3>
+                <span class="badge badge-premium">ID: #{{ log.id }}</span>
+            </div>
+
+            <!-- Date/Time alert block -->
+            <div class="p-3 rounded-3 mb-4 d-flex align-items-center justify-content-between" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-calendar3 text-highlight me-2.5 fs-5"></i>
+                    <div>
+                        <div class="text-secondary small">排便記錄時間</div>
+                        <div class="fw-bold text-light">{{ log.date_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                </div>
+                <div class="text-muted small">
+                    填寫於: {{ log.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+            </div>
+
+            <!-- Major Indicators Grid -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 h-100" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                        <span class="text-secondary small d-block mb-1">布里斯托類型分類</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle fs-5 px-3 py-1.5 fw-bold font-monospace">Type {{ log.bristol_type }}</span>
+                            {% if log.bristol_type in [3, 4] %}
+                                <span class="text-success small fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>健康理想</span>
+                            {% else %}
+                                <span class="text-warning small fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>偏離常態</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 h-100" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                        <span class="text-secondary small d-block mb-1">大便顏色特徵</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="d-inline-block rounded-circle" style="width: 18px; height: 18px; border: 1px solid #ffffff; background-color: 
+                                {% if log.color == '棕色' %}#634f3a
+                                {% elif log.color == '黃色' %}#eab308
+                                {% elif log.color == '綠色' %}#16a34a
+                                {% elif log.color == '黑色' %}#1e293b
+                                {% elif log.color == '紅色' %}#dc2626
+                                {% else %}#94a3b8{% endif %};"></span>
+                            <span class="fw-bold text-light">{{ log.color }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details list -->
+            <div class="mb-4">
+                <table class="table table-borderless text-secondary align-middle">
+                    <tbody>
+                        <tr class="border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                            <td class="ps-0 py-2.5 small" style="width: 120px;">當下心情感受</td>
+                            <td class="pe-0 py-2.5 text-light fw-semibold">{{ log.mood }}</td>
+                        </tr>
+                        <tr class="border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                            <td class="ps-0 py-2.5 small">大便氣味判定</td>
+                            <td class="pe-0 py-2.5 text-light fw-semibold">{{ log.odor or '未提供' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-0 py-2.5 small">個人備註與備忘</td>
+                            <td class="pe-0 py-2.5 text-light" style="white-space: pre-wrap;">{{ log.note or '無備註資訊' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
+                <a href="{{ url_for('logs.list_logs') }}" class="btn btn-outline-secondary px-4.5">
+                    <i class="bi bi-arrow-left me-1"></i>返回日誌列表
+                </a>
+                
+                <div class="d-flex gap-2">
+                    <!-- Bristol Analysis Button -->
+                    <a href="{{ url_for('analysis.view_result', id=log.id) }}" class="btn btn-outline-success px-3">
+                        <i class="bi bi-heart-pulse-fill me-1"></i>檢視健康分析
+                    </a>
+                    
+                    <!-- Edit Button -->
+                    <a href="{{ url_for('logs.edit_log', id=log.id) }}" class="btn btn-outline-warning px-3">
+                        <i class="bi bi-pencil-square me-1"></i>編輯
+                    </a>
+                    
+                    <!-- Delete Button Form -->
+                    <form action="{{ url_for('logs.delete_log', id=log.id) }}" method="POST" onsubmit="return confirm('確定要永久刪除此筆日誌紀錄嗎？這項動作將無法還原！');" class="d-inline">
+                        <button type="submit" class="btn btn-danger px-3">
+                            <i class="bi bi-trash-fill me-1"></i>刪除
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
