@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from app.models import User
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -11,7 +12,9 @@ def register():
     - 若 session 中已有 user_id (已登入)，重導向至首頁 '/'。
     - 否則，渲染 'auth/register.html'。
     """
-    pass
+    if session.get('user_id'):
+        return redirect(url_for('main.index'))
+    return render_template('auth/register.html')
 
 @auth_bp.route('/register', methods=['POST'])
 def register_post():
@@ -34,7 +37,40 @@ def register_post():
     錯誤處理：
     - 驗證失敗時，使用 flash() 傳遞錯誤原因，並回傳渲染 'auth/register.html'，可帶回原填寫的 username。
     """
-    pass
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    confirm_password = request.form.get('confirm_password', '')
+    
+    # 1. 驗證所有欄位是否填寫
+    if not username or not password or not confirm_password:
+        flash("所有欄位皆為必填項目！", "error")
+        return render_template('auth/register.html', username=username)
+        
+    # 2. 驗證密碼一致性與長度
+    if password != confirm_password:
+        flash("確認密碼與密碼不一致！", "error")
+        return render_template('auth/register.html', username=username)
+        
+    if len(password) < 6:
+        flash("密碼長度必須至少為 6 個字元！", "error")
+        return render_template('auth/register.html', username=username)
+        
+    # 3. 檢查帳號是否已被註冊
+    existing_user = User.get_by_username(username)
+    if existing_user:
+        flash("此使用者名稱已被註冊，請換一個！", "error")
+        return render_template('auth/register.html', username=username)
+        
+    try:
+        # 4. 建立使用者
+        user = User.create(username=username, password=password)
+        # 5. 存入 session 自動登入
+        session['user_id'] = user.id
+        flash("註冊成功！歡迎使用糞便日誌。", "success")
+        return redirect(url_for('main.index'))
+    except Exception as e:
+        flash("註冊過程中發生錯誤，請稍後再試。", "error")
+        return render_template('auth/register.html', username=username)
 
 @auth_bp.route('/login', methods=['GET'])
 def login():
@@ -45,7 +81,9 @@ def login():
     - 若已登入，重導向至首頁 '/'。
     - 否則，渲染 'auth/login.html'。
     """
-    pass
+    if session.get('user_id'):
+        return redirect(url_for('main.index'))
+    return render_template('auth/login.html')
 
 @auth_bp.route('/login', methods=['POST'])
 def login_post():
@@ -64,7 +102,25 @@ def login_post():
        - 重導向至首頁 '/'。
     4. 若驗證失敗，flash 錯誤訊息並重新渲染登入頁面。
     """
-    pass
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    
+    # 1. 驗證欄位是否填寫
+    if not username or not password:
+        flash("請輸入使用者名稱與密碼！", "error")
+        return render_template('auth/login.html', username=username)
+        
+    # 2. 查詢使用者
+    user = User.get_by_username(username)
+    
+    # 3. 驗證密碼
+    if user and user.check_password(password):
+        session['user_id'] = user.id
+        flash("登入成功！", "success")
+        return redirect(url_for('main.index'))
+    else:
+        flash("使用者名稱或密碼錯誤！", "error")
+        return render_template('auth/login.html', username=username)
 
 @auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -76,4 +132,6 @@ def logout():
     - flash 登出成功提示。
     - 重導向至登入頁面 '/login'。
     """
-    pass
+    session.pop('user_id', None)
+    flash("您已成功登出系統。", "success")
+    return redirect(url_for('auth.login'))

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}排便歷史記錄 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in-up">
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-1"><i class="bi bi-calendar3 text-highlight me-2"></i>排便歷史日誌</h2>
+            <p class="text-secondary mb-0">追蹤您長期的腸胃足跡。您可以透過日期進行篩選與複查紀錄。</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('logs.new_log') }}" class="btn btn-action-primary px-4 py-2">
+                <i class="bi bi-plus-circle-fill me-2"></i>記錄一次排便
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Range Filter Form Card -->
+    <div class="premium-card mb-5 py-4">
+        <form action="{{ url_for('logs.list_logs') }}" method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label text-secondary small fw-semibold">啟始日期</label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-dark text-secondary"><i class="bi bi-calendar-event"></i></span>
+                    <input type="date" class="form-control form-control-custom border-start-0" id="start_date" name="start_date" value="{{ start_date or '' }}">
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <label for="end_date" class="form-label text-secondary small fw-semibold">結束日期</label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-dark text-secondary"><i class="bi bi-calendar-event"></i></span>
+                    <input type="date" class="form-control form-control-custom border-start-0" id="end_date" name="end_date" value="{{ end_date or '' }}">
+                </div>
+            </div>
+            
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-action-primary flex-fill py-2">
+                    <i class="bi bi-search me-2"></i>篩選日誌
+                </button>
+                {% if start_date or end_date %}
+                    <a href="{{ url_for('logs.list_logs') }}" class="btn btn-outline-secondary px-3 py-2 border" title="清除篩選">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Listing -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            {% if logs %}
+                <div class="d-flex flex-column gap-3 mb-5">
+                    {% for log in logs %}
+                        <div class="premium-card py-3.5 px-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" style="transition: var(--transition-smooth);">
+                            <div class="d-flex align-items-center gap-3.5">
+                                <!-- Bristol type badge -->
+                                <div class="badge rounded-pill px-3 py-2.5 fs-6 font-monospace d-flex align-items-center justify-content-center
+                                    {% if log.bristol_type in [3, 4] %}
+                                        bg-success-subtle text-success border border-success-subtle
+                                    {% elif log.bristol_type in [1, 2, 5, 6, 7] %}
+                                        bg-warning-subtle text-warning border border-warning-subtle
+                                    {% endif %}" style="min-width: 80px;">
+                                    Type {{ log.bristol_type }}
+                                </div>
+                                
+                                <div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                        <h5 class="mb-0 text-light fw-bold" style="font-size: 1.1rem;">{{ log.color }}便</h5>
+                                        <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">{{ log.mood }}</span>
+                                        {% if log.odor %}
+                                            <span class="badge bg-dark text-muted border border-secondary border-opacity-10">{{ log.odor }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-secondary small d-flex align-items-center gap-2">
+                                        <span><i class="bi bi-clock me-1"></i>{{ log.date_time.strftime('%Y-%m-%d %H:%M') }}</span>
+                                        {% if log.note %}
+                                            <span class="text-muted">•</span>
+                                            <span class="text-truncate d-inline-block text-muted" style="max-width: 250px;" title="{{ log.note }}"><i class="bi bi-chat-left-text me-1"></i>{{ log.note }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-2.5 justify-content-end">
+                                <a href="{{ url_for('analysis.view_result', id=log.id) }}" class="btn btn-sm btn-outline-success px-3" title="檢視布里斯托健康分析">
+                                    <i class="bi bi-heart-pulse-fill me-1"></i>健康分析
+                                </a>
+                                <a href="{{ url_for('logs.detail_log', id=log.id) }}" class="btn btn-sm btn-action-primary px-3">
+                                    明細
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="premium-card text-center py-5 text-muted">
+                    <i class="bi bi-journal-x display-1 mb-3"></i>
+                    <h4>無排便日誌記錄</h4>
+                    <p class="text-secondary">在此篩選條件或期間下，沒有任何日誌紀錄。</p>
+                    <a href="{{ url_for('logs.new_log') }}" class="btn btn-action-primary mt-3 px-4">
+                        立即登記一次排便
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

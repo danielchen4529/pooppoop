@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}404 找不到頁面 - 糞便日誌{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center animate-fade-in-up">
+        <div class="premium-card py-5">
+            <h1 class="display-1 text-highlight fw-bold">404</h1>
+            <h3 class="mb-4">找不到此頁面</h3>
+            <p class="text-secondary mb-5">抱歉，您所尋找的頁面或記錄不存在，可能已被刪除或移至他處。</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-action-primary px-4">
+                <i class="bi bi-house-door-fill me-2"></i>返回控制台
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}腸胃飲食與健康建議 - 糞便日誌 Poop Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4 animate-fade-in-up">
+    <div class="col-lg-9">
+        <div class="premium-card">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3" style="border-color: var(--border-color) !important;">
+                <h3 class="mb-0"><i class="bi bi-lightbulb-fill text-highlight me-2"></i>綜合飲食與健康改善方針</h3>
+                <span class="badge badge-premium">依據近期日誌分析</span>
+            </div>
+
+            {% if logs_count < 3 %}
+                <!-- ==================== INSUFFICIENT LOGS VIEW ==================== -->
+                <div class="text-center py-5">
+                    <div class="fs-1 text-highlight mb-3 animate-pulse"><i class="bi bi-database-exclamation"></i></div>
+                    <h4 class="fw-bold mb-2">日誌記錄筆數不足 ({{ logs_count }} / 3)</h4>
+                    <p class="text-secondary mx-auto mb-4" style="max-width: 500px;">
+                        綜合飲食建議系統需要分析您**至少 3 筆**排便日誌，才能精準判斷您的消化道蠕動趨勢（如便秘或腹瀉傾向）並給出個人化的科學調養方案。
+                    </p>
+                    <a href="{{ url_for('logs.new_log') }}" class="btn btn-action-primary px-4 py-2.5">
+                        <i class="bi bi-plus-circle-fill me-2"></i>立即登記一次排便
+                    </a>
+                </div>
+            {% else %}
+                <!-- ==================== SUFFICIENT LOGS ANALYSIS VIEW ==================== -->
+                <!-- 1. Gut Trend Overview -->
+                <div class="p-4 rounded-4 mb-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center gap-3.5 mb-3.5">
+                        <div class="rounded-pill px-3 py-1 fw-bold fs-6
+                            {% if '便秘' in suggestion.summary %}bg-warning-subtle text-warning border border-warning-subtle
+                            {% elif '腹瀉' in suggestion.summary %}bg-danger-subtle text-danger border border-danger-subtle
+                            {% else %}bg-success-subtle text-success border border-success-subtle{% endif %}">
+                            {{ suggestion.summary }}
+                        </div>
+                        <h4 class="mb-0 text-light fw-bold">腸道健康趨勢評估</h4>
+                    </div>
+                    <p class="text-secondary mb-0" style="line-height: 1.75;">{{ suggestion.trend }}</p>
+                </div>
+
+                <!-- 2. Recommendations & Avoid panels -->
+                <div class="row g-4 mb-4">
+                    <!-- Recommended Diet Card -->
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 h-100" style="background-color: rgba(16, 185, 129, 0.02); border: 1px solid rgba(16, 185, 129, 0.15);">
+                            <h5 class="fw-bold text-success mb-3 d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-2 fs-5"></i>建議加強攝取食物
+                            </h5>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                {% for rec in suggestion.dietary_recommendations %}
+                                    <li class="list-group-item bg-transparent text-secondary border-0 ps-0 py-2 small d-flex gap-2">
+                                        <span class="text-success">•</span> <span>{{ rec }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Avoid Foods Card -->
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 h-100" style="background-color: rgba(239, 68, 68, 0.02); border: 1px solid rgba(239, 68, 68, 0.15);">
+                            <h5 class="fw-bold text-danger mb-3 d-flex align-items-center">
+                                <i class="bi bi-x-circle-fill me-2 fs-5"></i>此期間應避免食用
+                            </h5>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                {% for avoid in suggestion.avoid_foods %}
+                                    <li class="list-group-item bg-transparent text-secondary border-0 ps-0 py-2 small d-flex gap-2">
+                                        <span class="text-danger">•</span> <span>{{ avoid }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Water tracker & Lifestyle tips -->
+                <div class="row g-4 mb-5">
+                    <!-- Water display -->
+                    <div class="col-md-5">
+                        <div class="p-4 rounded-4 h-100 text-center d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(14, 165, 233, 0.02); border: 1px solid rgba(14, 165, 233, 0.15);">
+                            <div class="fs-1 text-info mb-2 animate-pulse"><i class="bi bi-droplet-fill"></i></div>
+                            <h5 class="fw-bold text-info mb-1">每日建議飲水目標</h5>
+                            <p class="display-6 fw-bold text-light mb-0">{{ suggestion.water_target }}</p>
+                            <small class="text-muted mt-2">充足水分有助於腸道潤滑與廢物排泄</small>
+                        </div>
+                    </div>
+
+                    <!-- Lifestyle tips -->
+                    <div class="col-md-7">
+                        <div class="p-4 rounded-4 h-100" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                            <h5 class="fw-bold mb-3 text-light d-flex align-items-center">
+                                <i class="bi bi-heart-fill text-highlight me-2"></i>日常作息及排便守則
+                            </h5>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                {% for tip in suggestion.lifestyle_tips %}
+                                    <li class="list-group-item bg-transparent text-secondary border-0 ps-0 py-2 small d-flex gap-2">
+                                        <span class="text-highlight"><i class="bi bi-arrow-right-short"></i></span>
+                                        <span>{{ tip }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Actions footer -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-chevron-left me-1"></i>返回控制台
+                </a>
+                
+                <a href="{{ url_for('logs.list_logs') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-calendar3 me-2"></i>檢視歷史日誌
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
