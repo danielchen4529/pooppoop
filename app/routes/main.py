@@ -36,7 +36,7 @@ def index():
         recent_logs = all_logs[:5]
         
         # 統計本週（過去 7 天內）的排便次數
-        now = datetime.utcnow()
+        now = datetime.now()
         seven_days_ago = now - timedelta(days=7)
         week_logs = [log for log in all_logs if log.date_time >= seven_days_ago]
         week_count = len(week_logs)
@@ -48,11 +48,31 @@ def index():
         else:
             most_common_type = "無記錄"
             
-        # 統計各布里斯托類型的分布（用於 Chart.js 圓餅圖）
+        # 統計各布里斯托類型的分布（用於 Chart.js 圓餅圖/甜甜圈圖）
         type_distribution = [0] * 7 # 索引 0-6 對應 Type 1-7
         for t in bristol_types:
             if 1 <= t <= 7:
                 type_distribution[t-1] += 1
+                
+        # 計算過去 7 天的每日統計（每週趨勢分析）
+        today_date = now.date()
+        trend_labels = []
+        trend_counts = []
+        trend_types = []
+        
+        for i in range(6, -1, -1):
+            target_date = today_date - timedelta(days=i)
+            day_logs = [log for log in all_logs if log.date_time.date() == target_date]
+            
+            trend_labels.append(target_date.strftime('%m/%d'))
+            count = len(day_logs)
+            trend_counts.append(count)
+            
+            if count > 0:
+                avg_type = sum(log.bristol_type for log in day_logs) / count
+                trend_types.append(round(avg_type, 1))
+            else:
+                trend_types.append(None)
                 
         return render_template(
             'index.html', 
@@ -61,7 +81,10 @@ def index():
             total_count=len(all_logs),
             week_count=week_count,
             most_common_type=most_common_type,
-            type_distribution=type_distribution
+            type_distribution=type_distribution,
+            trend_labels=trend_labels,
+            trend_counts=trend_counts,
+            trend_types=trend_types
         )
         
     return render_template('index.html', user=None)

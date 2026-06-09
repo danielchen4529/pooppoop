@@ -49,16 +49,60 @@
         </div>
 
         <div class="row g-4">
-            <!-- Left Column: Chart Area Placeholder -->
+            <!-- Left Column: Chart Area -->
             <div class="col-lg-7">
-                <div class="premium-card h-100">
-                    <h4 class="mb-4 d-flex align-items-center">
-                        <i class="bi bi-bar-chart-line-fill text-highlight me-2"></i>腸胃趨勢分析
-                    </h4>
-                    <div class="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-5" style="border-color: var(--border-color) !important; min-height: 250px;">
-                        <i class="bi bi-pie-chart display-1 text-muted mb-3 animate-pulse"></i>
-                        <p class="text-secondary text-center mb-0">圖表分析引擎就緒</p>
-                        <small class="text-muted text-center mt-1">您目前累積了 {{ total_count }} 筆記錄。當有更多紀錄時，這裡將展示您每週的排便趨勢。</small>
+                <div class="premium-card h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                        <h4 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-bar-chart-line-fill text-highlight me-2"></i>腸胃趨勢分析
+                        </h4>
+                        <!-- Tab switcher -->
+                        <ul class="nav nav-pills premium-nav-pills" id="chartTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="trend-tab" data-bs-toggle="tab" data-bs-target="#trend-tab-pane" type="button" role="tab" aria-controls="trend-tab-pane" aria-selected="true">
+                                    每週趨勢
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dist-tab" data-bs-toggle="tab" data-bs-target="#dist-tab-pane" type="button" role="tab" aria-controls="dist-tab-pane" aria-selected="false">
+                                    類型佔比
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="tab-content flex-grow-1" id="chartTabContent">
+                        <!-- Tab 1: Weekly Trend -->
+                        <div class="tab-pane fade show active h-100" id="trend-tab-pane" role="tabpanel" aria-labelledby="trend-tab" tabindex="0">
+                            {% if total_count > 0 %}
+                                <div class="chart-container position-relative" style="min-height: 280px; width: 100%;">
+                                    <canvas id="weeklyTrendChart"></canvas>
+                                </div>
+                            {% else %}
+                                <div class="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-5 h-100" style="border-color: var(--border-color) !important; min-height: 250px;">
+                                    <i class="bi bi-bar-chart display-1 text-muted mb-3"></i>
+                                    <p class="text-secondary text-center mb-0">尚未有足夠數據</p>
+                                    <small class="text-muted text-center mt-1">請開始新增排便日誌，系統將自動為您繪製每週健康趨勢圖。</small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tab 2: Bristol Distribution -->
+                        <div class="tab-pane fade h-100" id="dist-tab-pane" role="tabpanel" aria-labelledby="dist-tab" tabindex="0">
+                            {% if total_count > 0 %}
+                                <div class="chart-container position-relative d-flex align-items-center justify-content-center" style="min-height: 280px; width: 100%;">
+                                    <div style="max-width: 280px; width: 100%; height: 280px;">
+                                        <canvas id="bristolDistChart"></canvas>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-5 h-100" style="border-color: var(--border-color) !important; min-height: 250px;">
+                                    <i class="bi bi-pie-chart display-1 text-muted mb-3"></i>
+                                    <p class="text-secondary text-center mb-0">尚未有足夠數據</p>
+                                    <small class="text-muted text-center mt-1">請開始新增排便日誌，系統將自動為您繪製每週健康趨勢圖。</small>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -185,4 +229,225 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user and total_count > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- Theme Colors ---
+        const colorPrimary = '#d97706';
+        const colorPrimaryLight = '#f59e0b';
+        const colorSuccess = '#10b981';
+        const colorSuccessLight = '#34d399';
+        const colorWarning = '#f59e0b';
+        const colorDanger = '#ef4444';
+        const colorInfo = '#0ea5e9';
+        const textSecondary = '#cbd5e1';
+        const borderColor = '#2e3d56';
+
+        // --- Weekly Trend Chart (Bar + Line Combined) ---
+        const ctxTrend = document.getElementById('weeklyTrendChart');
+        if (ctxTrend) {
+            const labels = {{ trend_labels | tojson }};
+            const counts = {{ trend_counts | tojson }};
+            const bristolAvg = {{ trend_types | tojson }};
+
+            new Chart(ctxTrend, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '排便次數 (次)',
+                            data: counts,
+                            backgroundColor: 'rgba(217, 119, 6, 0.45)',
+                            borderColor: colorPrimary,
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            yAxisID: 'yFrequency',
+                            order: 2
+                        },
+                        {
+                            label: '平均布里斯托類型',
+                            data: bristolAvg,
+                            type: 'line',
+                            borderColor: colorSuccess,
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            pointBackgroundColor: colorSuccess,
+                            pointBorderColor: '#1f293d',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            borderWidth: 3,
+                            tension: 0.35,
+                            spanGaps: true, // Bridge days with null data points
+                            yAxisID: 'yBristol',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textSecondary,
+                                font: {
+                                    family: "'Outfit', 'Noto Sans TC'",
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            padding: 10,
+                            bodyFont: { family: "'Outfit', 'Noto Sans TC'" },
+                            titleFont: { family: "'Outfit', 'Noto Sans TC'" }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: borderColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textSecondary,
+                                font: { family: "'Outfit', 'Noto Sans TC'" }
+                            }
+                        },
+                        yFrequency: {
+                            type: 'linear',
+                            position: 'left',
+                            min: 0,
+                            suggestedMax: 4,
+                            ticks: {
+                                stepSize: 1,
+                                color: textSecondary,
+                                font: { family: "'Outfit'" }
+                            },
+                            grid: {
+                                color: borderColor,
+                                drawBorder: false
+                            },
+                            title: {
+                                display: true,
+                                text: '排便頻次 (次)',
+                                color: textSecondary,
+                                font: { family: "'Noto Sans TC'", size: 11 }
+                            }
+                        },
+                        yBristol: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 1,
+                            max: 7,
+                            ticks: {
+                                stepSize: 1,
+                                color: textSecondary,
+                                font: { family: "'Outfit'" }
+                            },
+                            grid: {
+                                drawOnChartArea: false // Only show grid lines for the left axis
+                            },
+                            title: {
+                                display: true,
+                                text: '布里斯托類型 (1-7)',
+                                color: textSecondary,
+                                font: { family: "'Noto Sans TC'", size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Bristol Distribution Chart (Doughnut) ---
+        let distChartInstance = null;
+        const initDistChart = () => {
+            if (distChartInstance) return;
+            const ctxDist = document.getElementById('bristolDistChart');
+            if (!ctxDist) return;
+
+            const distribution = {{ type_distribution | tojson }};
+            const baseLabels = [
+                'Type 1 (嚴重便秘)',
+                'Type 2 (輕微便秘)',
+                'Type 3 (正常偏乾)',
+                'Type 4 (理想健康)',
+                'Type 5 (纖維不足)',
+                'Type 6 (輕微腹瀉)',
+                'Type 7 (嚴重腹瀉)'
+            ];
+            
+            const colorPalette = [
+                '#dc2626', // Type 1: Rose/Red (Constipation)
+                '#f59e0b', // Type 2: Amber
+                '#84cc16', // Type 3: Lime/Light Green
+                '#10b981', // Type 4: Emerald Green (Ideal)
+                '#06b6d4', // Type 5: Cyan
+                '#3b82f6', // Type 6: Blue
+                '#6366f1'  // Type 7: Indigo (Diarrhea)
+            ];
+
+            distChartInstance = new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: baseLabels,
+                    datasets: [{
+                        data: distribution,
+                        backgroundColor: colorPalette,
+                        borderWidth: 2,
+                        borderColor: '#1f293d', // Match card background color
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textSecondary,
+                                padding: 10,
+                                boxWidth: 12,
+                                font: {
+                                    family: "'Outfit', 'Noto Sans TC'",
+                                    size: 10
+                                }
+                            }
+                        },
+                        tooltip: {
+                            padding: 10,
+                            bodyFont: { family: "'Outfit', 'Noto Sans TC'" },
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return ` ${context.label}: ${value} 筆 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        };
+
+        // Initialize hidden tab chart when the tab is shown to prevent rendering issues
+        const distTabEl = document.querySelector('button[data-bs-target="#dist-tab-pane"]');
+        if (distTabEl) {
+            distTabEl.addEventListener('shown.bs.tab', function () {
+                initDistChart();
+            });
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

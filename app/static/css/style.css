@@ -9,9 +9,9 @@
     --bg-card: #1f293d;
     --border-color: #2e3d56;
     
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
     
     /* Harmonious custom colors (HSL-tailored) */
     --color-primary: #d97706; /* Terracotta / Amber */
@@ -266,4 +266,44 @@ p {
         width: 100%;
         text-align: center;
     }
+}
+
+/* Override Bootstrap text utility classes to improve contrast on dark backgrounds */
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+.text-muted {
+    color: var(--text-muted) !important;
+}
+.text-light {
+    color: var(--text-primary) !important;
+}
+.text-white {
+    color: #ffffff !important;
+}
+.text-dark {
+    color: var(--bg-primary) !important;
+}
+
+/* Custom premium nav pills for chart tabs */
+.premium-nav-pills {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 3px;
+    border-radius: 20px;
+}
+.premium-nav-pills .nav-link {
+    color: var(--text-secondary);
+    border-radius: 18px;
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition-smooth);
+    border: none;
+    background: transparent;
+}
+.premium-nav-pills .nav-link.active,
+.premium-nav-pills .nav-link:hover {
+    background: var(--gradient-primary);
+    color: #ffffff !important;
 }
